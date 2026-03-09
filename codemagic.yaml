@@ -8,13 +8,6 @@ workflows:
       xcode: latest
 
     scripts:
-      - name: Show working directory
-        script: |
-          pwd
-          ls -la
-          ls -la lib
-          ls -la ios
-
       - name: Get Flutter packages
         script: |
           flutter pub get
