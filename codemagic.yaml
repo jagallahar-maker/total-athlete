@@ -1,56 +1,23 @@
 workflows:
-  ios-workflow:
-    name: iOS Workflow
-    max_build_duration: 120
-    instance_type: mac_mini_m1
-    integrations:
-      app_store_connect: codemagic
+  ios-android-release:
+    name: Build iOS & Android
+    max_build_duration: 60
     environment:
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.justingallahar.totalathlete
-      vars:
-        BUNDLE_ID: "com.justingallahar.totalathlete"
-        XCODE_WORKSPACE: "Runner.xcworkspace"
-        XCODE_SCHEME: "Runner"
       flutter: stable
-      xcode: latest
-      cocoapods: default
+
     scripts:
-      - name: Set up code signing settings on Xcode project
-        script: |
-          xcode-project use-profiles
       - name: Get Flutter packages
         script: |
-          flutter packages pub get
-      - name: Install pods
+          flutter pub get
+
+      - name: Build Android APK
         script: |
-          find . -name "Podfile" -execdir pod install \;
-      - name: Flutter analyze
+          flutter build apk --release
+
+      - name: Build iOS IPA
         script: |
-          flutter analyze
-      - name: Flutter build ipa
-        script: |
-          flutter build ipa --release \
-            --build-name=1.0.0 \
-            --build-number=$(($(app-store-connect get-latest-testflight-build-number "$APP_STORE_ID") + 1)) \
-            --export-options-plist=/Users/builder/export_options.plist
+          flutter build ipa --release --no-codesign
+
     artifacts:
+      - build/app/outputs/flutter-apk/*.apk
       - build/ios/ipa/*.ipa
-      - /tmp/xcodebuild_logs/*.log
-      - flutter_drive.log
-    publishing:
-      email:
-        recipients:
-          - justin@example.com
-        notify:
-          success: true
-          failure: true
-      app_store_connect:
-        auth: integration
-        # Configuration related to TestFlight (optional)
-        submit_to_testflight: true
-        beta_groups:
-          - Internal Testers
-        # Configuration related to App Store (optional)
-        submit_to_app_store: false
